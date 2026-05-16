@@ -179,380 +179,554 @@ function loadEmbedded(){
 }
 
 // ═══════════════════════════════════════════════════
-// BEAT MAP — Musical charting
+// BEAT MAP — Rebuilt from research report
 //
-// PHILOSOPHY: Every note = a real sound in Shiawase.
-// Lane assignments represent instrument roles:
-//   L0 (D/Left):  Kick drum, bass hits, low elements
-//   L1 (F/Down):  Bass synth, sub-bass, lower melody
-//   L2 (J/Up):    Lead melody, mid synth, chords
-//   L3 (K/Right): Snare, hi-hat, high accents
+// Verified structure (150 BPM, bar=1.6s):
+//   Intro pad:     beats 0-31    (0:00.0 - 0:12.8)
+//   Melody intro:  beats 32-63   (0:12.8 - 0:25.6)
+//   Build 1:       beats 64-95   (0:25.6 - 0:38.4)
+//   DROP 1:        beats 96-159  (0:38.4 - 1:04.0)
+//   Breakdown:     beats 160-223 (1:04.0 - 1:29.6)
+//   Build 2:       beats 224-255 (1:29.6 - 1:42.4)
+//   DROP 2:        beats 256-383 (1:42.4 - 2:33.6)
+//   Outro:         beats 384-540 (2:33.6 - 3:37)
 //
-// Note types:
-//   0 = tap (single hit sound)
-//   1 = hold (sustained sound — bass wobble, pad, riser)
-//   3 = burst (accent/impact — chord stab, crash)
-//
-// Shiawase: 150 BPM, Eb Major
-// Chords: Bb → Cm → Bb → Ab7 (4-chord cycle, 2 bars each = 8 bars total)
-// Half-time feel: perceived groove at 75 BPM
+// Chords: Bb-Cm-Bb-Ab7 (1 bar each, 4-bar cycle)
+// Lane roles: L0=kick/bass L1=bass synth L2=lead melody L3=snare/high
+// Every note = a real sound. Hold notes = sustained elements.
 // ═══════════════════════════════════════════════════
 
 function genMap(){
 var n=[];
-function tap(beat,lane){n.push({time:beat*B,lane:lane,type:0})}
-function hold(beat,lane,durBeats){n.push({time:beat*B,lane:lane,type:1,dur:durBeats*B})}
-function burst(beat,lane){n.push({time:beat*B,lane:lane,type:3})}
-function jump(beat,a,b,t){n.push({time:beat*B,lane:a,type:t||0});n.push({time:beat*B,lane:b,type:t||0})}
+function tap(b,l){n.push({time:b*B,lane:l,type:0})}
+function hold(b,l,d){n.push({time:b*B,lane:l,type:1,dur:d*B})}
+function burst(b,l){n.push({time:b*B,lane:l,type:3})}
+function jump(b,a,c,t){n.push({time:b*B,lane:a,type:t||0});n.push({time:b*B,lane:c,type:t||0})}
 
-// ═══ INTRO (0:00-0:27, beats 0-67) ═══════════════
-// Playing: CHIME MELODY — sparse bell/pluck hits
-// Each note = one chime pluck. Long gaps between them.
+// ═══ INTRO PAD (beats 0-31, 0:00-0:12.8) ═════════
+// Atmospheric wash. Almost silence. One pad hold.
+hold(2, 2, 12);       // ambient pad — sustained on melody lane
+tap(16, 2);           // single soft chime hit halfway through
 
-// 0:00-0:06 — Ambient pad fades in. One soft chime.
-hold(2,2,4);          // sustained pad — hold on melody lane
+// ═══ MELODIC INTRO (beats 32-63, 0:12.8-0:25.6) ══
+// Lead synth melody enters alone over 4-chord loop.
+// Playing: the "dap doo-doo-doo" hook. Eighth-note melody.
+// No drums yet — just the lead synth, one note at a time.
 
-// 0:06-0:13 — Chime melody fragments emerge
-tap(16,2);            // chime hit (melody note)
-tap(20,2);            // chime
-tap(22,1);            // lower chime
+// Bb (bars 1-2, beats 32-39): melody starts
+tap(32, 2);           // "dap" — accented melody note
+tap(34, 3);           // "doo" — higher
+tap(35, 3);           // "doo"
+tap(36, 2);           // descend
 
-// 0:13-0:20 — Melody becomes clearer, plucky synth
-tap(32,2);            // melody note
-tap(34,3);            // higher accent
-tap(36,2);            // melody
-tap(38,1);            // lower step
-tap(40,2);            // back up
-hold(42,2,2);         // sustained chime ring
+// Cm (bars 3-4, beats 40-47): melody shifts down
+tap(40, 1);           // "dap" — lower for minor chord
+tap(42, 2);           // "doo"
+tap(43, 2);           // "doo"
+tap(44, 1);           // resolve down
 
-// 0:20-0:27 — Light percussion enters, melody continues
-tap(48,2); tap(50,3); // melody phrase
-tap(52,2); tap(53,1); // descending
-tap(56,2); tap(58,3); // ascending
-tap(60,2);            // resolve
-// Soft kick enters
-tap(62,0);            // first kick
-tap(66,0);            // second kick
+// Bb (bars 5-6, beats 48-55): melody repeats
+tap(48, 2);           // "dap"
+tap(50, 3);           // "doo"
+tap(51, 3);           // "doo"
+tap(52, 2);           // descend
 
-// ═══ VERSE (0:27-0:54, beats 68-135) ═════════════
-// Playing: LEAD SYNTH MELODY (the Shiawase hook)
-// Drums enter: kick on beat 1 of each 4-bar, snare on beat 3
-// Melody mapped to pitch: high→L2/L3, low→L1/L2
+// Ab7 (bars 7-8, beats 56-63): resolution phrase
+tap(56, 1);           // melody resolves lower
+tap(58, 2);           // "doo"
+tap(59, 2);           // "doo"
+hold(60, 2, 3);       // sustained note — ring into build section
 
-// Chord cycle 1: Bb (bars 1-2)
-// Melody phrase A — the iconic hook
-tap(68,0);            // KICK
-tap(69,2);            // melody: starting note
-tap(70,2);            // melody: same pitch
-tap(71,3);            // melody: step up
-tap(72,3);            // SNARE lane + melody high
-tap(73,2);            // melody: step down
-hold(74,1,2);         // bass note sustain
+// ═══ BUILD 1 (beats 64-95, 0:25.6-0:38.4) ════════
+// Kick enters beat 1, snare on beat 3. Melody continues.
+// Riser builds in last 2 bars. REST before drop.
 
-// Chord: Cm (bars 3-4)
-tap(76,0);            // KICK
-tap(77,2);            // melody note
-tap(78,1);            // melody: lower (minor chord)
-tap(79,2);            // melody: back up
-tap(80,3);            // SNARE
-tap(81,2);            // melody
-hold(82,1,2);         // bass sustain
+// Bb (bars 1-2, beats 64-71): drums enter
+tap(64, 0);           // KICK — first kick of the song
+tap(65.5, 2);         // melody (syncopated)
+tap(66, 3);           // SNARE (beat 3)
+tap(67, 2);           // melody
+tap(68, 0);           // KICK
+tap(69.5, 2);         // melody
+tap(70, 3);           // SNARE
+tap(71, 2);           // melody
 
-// Chord: Bb (bars 5-6) — melody repeats higher
-tap(84,0);            // KICK
-tap(85,2);            // melody
-tap(86,3);            // higher
-tap(87,3);            // stay high
-tap(88,3);            // SNARE
-tap(89,2);            // melody descend
-hold(90,1,2);         // bass
+// Cm (bars 3-4, beats 72-79)
+tap(72, 0);           // KICK
+tap(73, 1);           // melody lower
+tap(74, 3);           // SNARE
+tap(75, 2);           // melody
+tap(76, 0);           // KICK
+tap(77.5, 1);         // melody
+tap(78, 3);           // SNARE
+tap(79, 2);           // melody
 
-// Chord: Ab7 (bars 7-8) — resolution phrase
-tap(92,0);            // KICK
-tap(93,2);            // melody
-tap(94,1);            // melody: lower
-tap(95,2);            // melody: resolve
-tap(96,3);            // SNARE accent
-hold(97,1,3);         // long bass resolve
+// Bb (bars 5-6, beats 80-87): energy rises
+tap(80, 0);           // KICK
+tap(81, 2);           // melody
+tap(82, 3);           // SNARE
+tap(83, 2);           // melody
+tap(84, 0);           // KICK
+tap(85, 2);           // melody
+tap(85.5, 3);         // ornament — energy building
+tap(86, 3);           // SNARE
 
-// Chord cycle 2 — melody varies (more movement)
-tap(100,0);           // KICK
-tap(101,3);           // melody high
-tap(102,2);           // step down
-tap(103,3);           // back up
-tap(104,3);           // SNARE
-tap(105,2);           // descend
-tap(106,1);           // lower
-hold(107,1,1);        // short bass
+// Ab7 (bars 7-8, beats 88-95): SNARE ROLL + RISER
+hold(88, 1, 7);       // RISER — sustained bass lane
 
-tap(108,0);           // KICK
-tap(109,2);           // melody
-tap(110,3);           // up
-tap(111,2);           // down
-tap(112,3);           // SNARE
-hold(113,2,2);        // sustained melody note
+tap(88, 3);           // snare (every 2 beats)
+tap(90, 3);
+tap(91, 3);           // snare (every beat)
+tap(92, 3);
+tap(92.5, 3);         // snare (every half-beat)
+tap(93, 3);
+tap(93.5, 3);
+tap(94, 3);           // snare (16ths for last beat)
+tap(94.25, 3);
+tap(94.5, 3);
+tap(94.75, 3);
+// beat 95-95.5: REST — silence before drop (report: "rest 1 eighth note")
 
-tap(116,0);           // KICK
-tap(117,3);           // melody high
-tap(118,2);           // middle
-tap(119,1);           // low
-tap(120,3);           // SNARE
-tap(121,2);           // melody
-tap(122,3);           // accent
+// ═══ DROP 1 (beats 96-159, 0:38.4-1:04.0) ════════
+// 16 bars, 4 chord cycles.
+// Playing: chord stabs (jumps), kick (L0), snare (L3),
+//   melody (L2/L3), bass sustains (L1 holds).
+// Snare on beat 3 = biggest hit every bar.
 
-// Final verse phrase — energy builds
-tap(124,0);           // KICK
-tap(125,2); tap(126,3); tap(127,2); // melody triplet feel
-tap(128,3);           // SNARE
-tap(129,2); tap(130,1); // descending
-tap(131,2); tap(132,3); // ascending into build
-hold(133,2,2);        // sustained note into build
+// ── Chord cycle 1 (beats 96-111) ──
+// Bar 1: Bb — THE DROP HITS
+burst(96, 0); burst(96, 2);  // CHORD STAB — massive impact!
+hold(97, 1, 3);       // bass wobble sustain
+tap(98, 3);           // SNARE
+tap(99, 2);           // melody
 
-// ═══ BUILD 1 (0:54-1:08, beats 136-169) ══════════
-// Playing: SNARE ROLL + RISER
-// Snare hits get progressively faster. Riser = hold note.
+// Bar 2: Cm
+tap(100, 0);          // kick
+tap(101, 1);          // melody (lower for Cm)
+tap(102, 3);          // SNARE
+tap(103, 2);          // melody
 
-// Phase 1: Snare on every 2 beats
-tap(136,3);           // snare
-tap(138,3);           // snare
-tap(140,3);           // snare
-tap(142,3);           // snare
+// Bar 3: Bb
+tap(104, 0);          // kick
+tap(105, 2);          // melody
+tap(106, 3);          // SNARE
+tap(107.5, 1);        // counter-stab (beat 4-and)
 
-// Phase 2: Snare every beat
-tap(144,3); tap(145,3); tap(146,3); tap(147,3);
+// Bar 4: Ab7
+tap(108, 0);          // kick
+tap(109, 1);          // melody resolves
+tap(110, 3);          // SNARE
+hold(111, 1, 1);      // bass resolve
 
-// Phase 3: Snare every half-beat
-tap(148,3); tap(148.5,3); tap(149,3); tap(149.5,3);
-tap(150,3); tap(150.5,3); tap(151,3); tap(151.5,3);
+// ── Chord cycle 2 (beats 112-127): more melody ──
+// Bar 5: Bb
+jump(112, 0, 2);      // chord re-accent
+tap(113, 3);          // melody high
+tap(113.5, 2);        // ornament
+tap(114, 3);          // SNARE
+tap(115, 2);          // melody
 
-// Phase 4: Snare 16ths (peak intensity)
-tap(152,3);tap(152.25,3);tap(152.5,3);tap(152.75,3);
-tap(153,3);tap(153.25,3);tap(153.5,3);tap(153.75,3);
+// Bar 6: Cm
+tap(116, 0);          // kick
+tap(117, 1);          // melody
+tap(117.5, 2);        // ornament
+tap(118, 3);          // SNARE
+tap(119, 2);          // melody
 
-// Riser sound — one big hold note across the build
-hold(136,1,18);       // RISER: sustained 18 beats on bass lane
+// Bar 7: Bb
+tap(120, 0);          // kick
+tap(121, 2);          // melody
+tap(122, 3);          // SNARE
+tap(123.5, 1);        // counter-stab
 
-// Final impact hits before drop
-burst(155,0);burst(155,2); // big chord stab
-// Silence 156-169 for maximum impact
+// Bar 8: Ab7
+tap(124, 0);          // kick
+tap(125, 1);          // melody
+tap(126, 3);          // SNARE
+hold(126, 1, 2);      // bass sustain
+tap(127.5, 2);        // melody pickup into next cycle
 
-// ═══ DROP 1 (1:08-1:36, beats 170-240) ═══════════
-// Playing: KICK + SNARE + CHORD STABS + BASS WOBBLE
-// Half-time feel: kick on 1, snare on 5 of each 8-beat phrase
-// Chord stabs = jumps. Bass between = hold notes.
+// ── Chord cycle 3 (beats 128-143): intensity builds ──
+// Bar 9: Bb
+burst(128, 0); burst(128, 2); // chord stab
+hold(129, 1, 2);      // bass
+tap(129, 2);          // melody
+tap(130, 3);          // SNARE
+tap(131, 2);          // melody
+tap(131.5, 3);        // melody high accent
 
-// Phrase 1 (Bb chord) — THE DROP HITS
-jump(170,0,2,3);      // CHORD STAB (kick+melody = burst)
-hold(171,1,3);        // bass wobble sustain
-tap(174,3);           // SNARE
-tap(175,2);           // melody accent
-hold(176,1,2);        // bass continues
+// Bar 10: Cm
+tap(132, 0);          // kick
+tap(133, 1);          // melody
+tap(133.5, 2);        // ornament
+tap(134, 3);          // SNARE
+tap(135, 2);          // melody
 
-// Phrase 2 (Cm)
-jump(178,0,2,3);      // CHORD STAB
-hold(179,1,3);        // bass wobble
-tap(182,3);           // SNARE
-tap(183,2);           // melody
-hold(184,1,2);        // bass
+// Bar 11: Bb
+tap(136, 0);          // kick
+tap(137, 2);          // melody
+tap(137.5, 3);        // ornament
+tap(138, 3);          // SNARE
+tap(139, 2);          // melody
 
-// Phrase 3 (Bb) — melody sings over the drop
-jump(186,0,2,3);      // CHORD STAB
-tap(187,2);           // melody note
-tap(188,3);           // melody high
-hold(189,1,1);        // short bass
-tap(190,3);           // SNARE
-tap(191,2);           // melody
-tap(192,1);           // lower melody
+// Bar 12: Ab7
+tap(140, 0);          // kick
+tap(141, 1);          // melody resolves
+tap(142, 3);          // SNARE
+hold(143, 2, 1);      // sustained melody note
 
-// Phrase 4 (Ab7) — resolution
-jump(194,0,2,3);      // CHORD STAB
-tap(195,3);           // melody high
-tap(196,2);           // melody
-hold(197,1,1);        // bass
-tap(198,3);           // SNARE
-tap(199,2);           // melody descend
-hold(200,1,2);        // bass resolve
+// ── Chord cycle 4 (beats 144-159): drop climax ──
+// Bar 13: Bb
+burst(144, 0); burst(144, 2); // chord stab
+tap(145, 2);          // melody
+tap(145.5, 3);        // ornament
+tap(146, 3);          // SNARE
+tap(147, 2);          // melody
+tap(147.5, 1);        // counter-stab
 
-// Second half of drop — more energy, melody more active
-// Phrase 5 (Bb)
-jump(202,0,2,3);      // CHORD STAB
-tap(203,2);           // melody
-tap(203.5,3);         // quick melody ornament
-hold(204,1,2);        // bass
-tap(206,3);           // SNARE
-tap(207,2);           // melody
-tap(207.5,1);         // lower accent
+// Bar 14: Cm
+tap(148, 0);          // kick
+tap(149, 1);          // melody
+tap(149.5, 2);        // ornament
+tap(150, 3);          // SNARE
+tap(151, 2);          // melody
 
-// Phrase 6 (Cm)
-jump(208,0,2,3);      // CHORD STAB
-tap(209,3);           // melody
-tap(210,2);           // melody
-tap(210.5,3);         // ornament
-hold(211,1,1);        // bass
-tap(212,3);           // SNARE
-tap(213,2);           // melody
+// Bar 15: Bb
+tap(152, 0);          // kick
+tap(153, 2);          // melody
+tap(153.5, 3);        // melody
+tap(154, 3);          // SNARE
+tap(155, 2);          // melody
 
-// Phrase 7 (Bb)
-jump(214,0,2,3);      // CHORD STAB
-tap(215,2); tap(216,3); tap(217,2); // melody run
-tap(218,3);           // SNARE
-hold(219,1,2);        // bass
-tap(221,2);           // melody accent
+// Bar 16: Ab7 — drop ending
+tap(156, 0);          // kick
+tap(157, 1);          // melody
+burst(158, 3);        // FINAL SNARE (impact)
+burst(159, 0); burst(159, 2); // CRASH — transition
 
-// Phrase 8 (Ab7) — drop climax + transition
-jump(222,0,2,3);      // CHORD STAB
-tap(223,3); tap(224,2); // melody
-tap(225,1);           // low melody
-tap(226,3);           // SNARE
-hold(227,2,2);        // sustained melody note
-// Final drop hits
-burst(230,0);burst(230,2);burst(230,1);burst(230,3); // FULL WALL crash
-// Energy drops...
-tap(234,2); tap(236,1); // fading melody
+// ═══ BREAKDOWN (beats 160-223, 1:04.0-1:29.6) ════
+// 16 bars. Lead synth melody over soft/no drums.
+// Playing: melody only. Very sparse. Hold notes for pads.
+// ~2-3 notes per bar.
 
-// ═══ BREAKDOWN (1:36-2:02, beats 244-305) ════════
-// Playing: RETURNING MELODY — gentle, atmospheric
-// Very sparse. Hold notes for pads. Individual melody notes.
+hold(160, 2, 6);      // atmospheric pad re-enters
 
-hold(244,2,8);        // atmospheric pad returns — long sustain
+// Bb (bars 1-2)
+tap(164, 2);          // melody note
+tap(167, 3);          // melody
 
-tap(256,2);           // melody: first gentle note
-tap(262,1);           // lower
-tap(268,2);           // back up
+// Cm (bars 3-4)
+tap(170, 1);          // melody shifts down
+tap(173, 2);          // melody
 
-// Melody fragment returns
-tap(274,2);           // melody
-tap(276,3);           // higher
-tap(278,2);           // resolve
-hold(280,1,4);        // bass pad underneath
+// Bb (bars 5-6)
+tap(176, 2);          // melody
+tap(178, 3);          // melody high
+hold(179, 2, 2);      // sustained
 
-tap(286,2);           // melody note
-tap(288,3);           // accent
-tap(290,2);           // melody
-tap(292,1);           // lower
-hold(294,2,4);        // sustained melody — building tension
+// Ab7 (bars 7-8)
+tap(184, 1);          // melody resolves
+tap(186, 2);          // melody
 
-// Tension starts to return
-tap(300,2); tap(301,3); // melody quickens
-tap(302,2); tap(303,1); // descending
-tap(304,2);           // final breath
+// Second chord cycle — melody restated softer
+hold(188, 2, 4);      // long pad
 
-// ═══ BUILD 2 (2:02-2:16, beats 306-339) ══════════
-// Playing: SNARE ROLL + RISER (more intense than Build 1)
+// Bb
+tap(194, 2);          // melody
+tap(196, 3);          // melody
 
-// Riser hold — even longer
-hold(306,1,24);       // MASSIVE RISER across entire build
+// Cm
+tap(200, 1);          // melody
+tap(202, 2);          // melody
 
-// Snare every 2 beats
-tap(306,3); tap(308,3); tap(310,3); tap(312,3);
+// Bb
+tap(204, 2);          // melody
+hold(206, 2, 2);      // sustained
 
-// Snare every beat
-tap(314,3); tap(315,3); tap(316,3); tap(317,3);
+// Ab7
+tap(210, 1);          // melody
+tap(212, 2);          // melody
 
-// Snare every half-beat + kick joins
-tap(318,3);tap(318.5,0); tap(319,3);tap(319.5,0);
-tap(320,3);tap(320.5,0); tap(321,3);tap(321.5,0);
+// Final breakdown bars — tension starts returning
+tap(216, 2);          // melody
+tap(218, 3);          // melody picks up
+tap(220, 2);          //
+tap(222, 1);          // descending — leads to build
 
-// 16th snare roll
-tap(322,3);tap(322.25,3);tap(322.5,3);tap(322.75,3);
-tap(323,3);tap(323.25,3);tap(323.5,3);tap(323.75,3);
+// ═══ BUILD 2 (beats 224-255, 1:29.6-1:42.4) ══════
+// 8 bars. Snare roll + riser, more intense than Build 1.
+// Playing: snare roll building to climax, then REST.
 
-// Final fill — kicks join the 16ths
-tap(324,3);tap(324.25,0);tap(324.5,3);tap(324.75,0);
-tap(325,3);tap(325.25,0);tap(325.5,3);tap(325.75,0);
+hold(224, 1, 27);     // RISER — massive sustained hold
 
-// IMPACT — walls
-burst(326,0);burst(326,2);burst(326,1);burst(326,3);
-// Silence 327-339 for DROP 2
+// Bars 1-2: snare every 4 beats
+tap(224, 3);
+tap(228, 3);
 
-// ═══ DROP 2 (2:16-2:52, beats 340-430) ═══════════
-// Playing: Same as Drop 1 but MORE — extra percussion fills,
-// more melody notes between chord stabs, heavier bass
+// Bars 3-4: snare every 2 beats
+tap(232, 3);
+tap(234, 3);
+tap(236, 3);
+tap(238, 3);
 
-// Phrase 1 (Bb) — DROP 2 HITS HARDER
-jump(340,0,2,3);      // CHORD STAB (burst)
-jump(340,1,3,3);      // FULL 4-NOTE WALL for maximum impact
-hold(341,1,3);        // bass wobble
-tap(344,3);           // SNARE
-tap(345,2);           // melody
-tap(345.5,3);         // hi-hat ornament
-hold(346,1,2);        // bass
+// Bar 5: snare every beat
+tap(240, 3); tap(241, 3); tap(242, 3); tap(243, 3);
 
-// Phrase 2 (Cm) — with fills
-jump(348,0,2,3);      // CHORD STAB
-tap(349,2);           // melody
-hold(350,1,2);        // bass
-tap(352,3);           // SNARE
-tap(353,2);tap(353.5,3); // melody ornament
-tap(354,2);           // melody resolve
+// Bar 6: snare + kick alternating (half-beats)
+tap(244, 3); tap(244.5, 0);
+tap(245, 3); tap(245.5, 0);
+tap(246, 3); tap(246.5, 0);
+tap(247, 3); tap(247.5, 0);
 
-// Phrase 3 (Bb)
-jump(356,0,2,3);      // CHORD STAB
-tap(357,3);           // melody high
-tap(358,2);           // melody
-tap(358.5,1);         // bass accent
-hold(359,1,1);        // short bass
-tap(360,3);           // SNARE
-tap(361,2);           // melody
-hold(362,2,2);        // sustained melody note
+// Bar 7: 16th snare roll
+tap(248, 3); tap(248.25, 3); tap(248.5, 3); tap(248.75, 3);
+tap(249, 3); tap(249.25, 3); tap(249.5, 3); tap(249.75, 3);
+tap(250, 3); tap(250.25, 3); tap(250.5, 3); tap(250.75, 3);
 
-// Phrase 4 (Ab7)
-jump(364,0,2,3);      // CHORD STAB
-tap(365,2);tap(366,3);tap(367,2); // melody run
-tap(368,3);           // SNARE
-tap(369,1);           // low accent
-hold(370,1,2);        // bass resolve
+// Bar 7 end: impact wall
+burst(251, 0); burst(251, 2);
 
-// Drop 2 second half — peak energy
-// Phrase 5 (Bb)
-jump(372,0,2,3);      // CHORD STAB
-tap(373,3);tap(373.5,2); // quick melody
-hold(374,1,2);        // bass
-tap(376,3);           // SNARE
-tap(377,2);tap(377.5,3); // melody
-tap(378,2);           // melody
+// Bar 8 (beats 252-255): SILENCE — rest before drop 2
 
-// Phrase 6 (Cm) — more fills
-jump(380,0,2,3);      // CHORD STAB
-tap(381,2);tap(381.5,1); // melody descend
-hold(382,1,1.5);      // bass
-tap(384,3);           // SNARE
-tap(384.5,0);         // extra kick (added energy)
-tap(385,2);tap(385.5,3); // melody ornament
+// ═══ DROP 2 (beats 256-383, 1:42.4-2:33.6) ═══════
+// 32 bars, 8 chord cycles.
+// Same structure as Drop 1 but heavier + extended.
+// Vary patterns every 8 bars per report recommendations.
 
-// Phrase 7 (Bb) — CLIMAX phrase
-jump(388,0,2,3);      // CHORD STAB
-tap(389,3);tap(389.5,2);tap(390,3);tap(390.5,2); // rapid melody
-hold(391,1,1);        // bass
-tap(392,3);           // SNARE
-tap(392.5,0);         // extra kick
-tap(393,2);tap(393.5,3);tap(394,2); // melody flurry
+// ── PHRASE A (beats 256-287): Re-entry, slightly heavier ──
+// Bar 1: Bb — DROP 2 HITS
+burst(256, 0); burst(256, 1); burst(256, 2); burst(256, 3); // FULL WALL
+hold(257, 1, 3);      // bass wobble
+tap(258, 3);          // SNARE
+tap(259, 2);          // melody
 
-// Phrase 8 (Ab7) — final drop phrase
-jump(396,0,2,3);      // CHORD STAB
-tap(397,2);tap(398,3);tap(399,2); // melody
-tap(400,3);           // SNARE
-hold(401,2,3);        // sustained melody
-tap(404,3);           // final snare accent
+// Bar 2: Cm
+tap(260, 0);          // kick
+tap(261, 1);          // melody
+tap(262, 3);          // SNARE
+tap(263, 2);          // melody
 
-// Drop ending
-burst(408,0);burst(408,1);burst(408,2);burst(408,3); // CRASH WALL
-hold(410,2,4);        // final sustained chord
-tap(416,0);           // last kick
-tap(420,2);           // fading melody hit
+// Bar 3: Bb
+tap(264, 0);          // kick
+tap(265, 2);          // melody
+tap(265.5, 3);        // ornament (more energy than Drop 1)
+tap(266, 3);          // SNARE
+tap(267.5, 1);        // counter-stab
 
-// ═══ OUTRO (2:52-3:37, beats 434-540) ════════════
-// Playing: FADING MELODY FRAGMENTS
-// Progressive silence. Each note further apart.
+// Bar 4: Ab7
+tap(268, 0);          // kick
+tap(269, 1);          // melody
+tap(270, 3);          // SNARE
+hold(271, 1, 1);      // bass resolve
 
-hold(436,2,6);        // sustained pad
-tap(444,2);           // melody echo
-tap(452,1);           // lower echo
-hold(458,2,4);        // sustained note
-tap(468,2);           // distant melody
-tap(480,2);           // barely there
-hold(490,2,8);        // final pad sustain
-tap(510,2);           // last whisper
+// Bars 5-8: repeat structure with variation
+// Bar 5: Bb
+jump(272, 0, 2);      // chord stab
+tap(273, 3);          // melody
+tap(274, 3);          // SNARE
+hold(275, 1, 1);      // bass
+
+// Bar 6: Cm
+tap(276, 0);          // kick
+tap(277, 1);          // melody
+tap(277.5, 2);        // ornament
+tap(278, 3);          // SNARE
+
+// Bar 7: Bb
+tap(280, 0);          // kick
+tap(281, 2);          // melody
+tap(282, 3);          // SNARE
+tap(283.5, 1);        // counter-stab
+
+// Bar 8: Ab7
+tap(284, 0);          // kick
+tap(285, 1);          // melody
+tap(286, 3);          // SNARE
+hold(286, 1, 2);      // bass
+tap(287.5, 2);        // melody pickup
+
+// ── PHRASE B (beats 288-319): Melody more prominent ──
+// Bar 9: Bb
+burst(288, 0); burst(288, 2); // chord stab
+tap(289, 2);          // melody
+tap(289.5, 3);        // melody
+tap(290, 3);          // SNARE
+tap(291, 2);          // melody
+hold(291, 1, 1);      // bass
+
+// Bar 10: Cm
+tap(292, 0);          // kick
+tap(293, 1);          // melody
+tap(293.5, 2);        // ornament
+tap(294, 3);          // SNARE
+tap(295, 2);          // melody
+
+// Bar 11: Bb
+tap(296, 0);          // kick
+tap(297, 2);          // melody
+tap(297.5, 3);        // ornament
+tap(298, 3);          // SNARE
+tap(299, 2);          // melody
+tap(299.5, 1);        // counter-stab
+
+// Bar 12: Ab7
+tap(300, 0);          // kick
+tap(301, 1);          // melody
+tap(302, 3);          // SNARE
+hold(303, 2, 1);      // sustained melody
+
+// Bars 13-16: continuation
+// Bar 13: Bb
+jump(304, 0, 2);      // chord accent
+tap(305, 2);          // melody
+tap(305.5, 3);        // ornament
+tap(306, 3);          // SNARE
+tap(307, 2);          // melody
+
+// Bar 14: Cm
+tap(308, 0);          // kick
+tap(309, 1);          // melody
+tap(310, 3);          // SNARE
+tap(311, 2);          // melody
+tap(311.5, 1);        // counter-stab
+
+// Bar 15: Bb
+tap(312, 0);          // kick
+tap(313, 2);          // melody
+tap(314, 3);          // SNARE
+tap(315, 2);          // melody
+
+// Bar 16: Ab7
+tap(316, 0);          // kick
+tap(317, 1);          // melody
+tap(318, 3);          // SNARE
+hold(318, 1, 2);      // bass
+tap(319.5, 2);        // pickup
+
+// ── PHRASE C (beats 320-351): Peak intensity ──
+// Bar 17: Bb
+burst(320, 0); burst(320, 2); // chord STAB
+tap(321, 2);          // melody
+tap(321.5, 3);        // melody fast
+tap(322, 3);          // SNARE
+hold(323, 1, 1);      // bass
+
+// Bar 18: Cm
+tap(324, 0);          // kick
+tap(325, 1);          // melody
+tap(325.5, 2);        // ornament
+tap(326, 3);          // SNARE
+tap(327, 2);          // melody
+tap(327.5, 1);        // counter-stab
+
+// Bar 19: Bb
+tap(328, 0);          // kick
+tap(329, 2);          // melody
+tap(329.5, 3);        // ornament
+tap(330, 3);          // SNARE
+tap(331, 2);          // melody
+
+// Bar 20: Ab7
+tap(332, 0);          // kick
+tap(333, 1);          // melody
+tap(334, 3);          // SNARE
+hold(335, 2, 1);      // sustained
+
+// Bars 21-24: intensified with more ornaments
+// Bar 21: Bb
+burst(336, 0); burst(336, 2); // chord stab
+tap(337, 2); tap(337.5, 3);  // melody + ornament
+tap(338, 3);          // SNARE
+tap(339, 2);          // melody
+tap(339.5, 1);        // counter-stab
+
+// Bar 22: Cm
+tap(340, 0);          // kick
+tap(341, 1); tap(341.5, 2);  // melody + ornament
+tap(342, 3);          // SNARE
+tap(343, 2);          // melody
+
+// Bar 23: Bb
+tap(344, 0);          // kick
+tap(345, 2); tap(345.5, 3);  // melody pair
+tap(346, 3);          // SNARE
+tap(347, 2);          // melody
+tap(347.5, 1);        // counter-stab
+
+// Bar 24: Ab7
+tap(348, 0);          // kick
+tap(349, 1); tap(349.5, 2);  // melody
+tap(350, 3);          // SNARE
+hold(351, 2, 1);      // sustained melody
+
+// ── PHRASE D (beats 352-383): Final stretch + ending ──
+// Bar 25: Bb
+burst(352, 0); burst(352, 2); // chord stab
+tap(353, 2); tap(353.5, 3);  // melody
+tap(354, 3);          // SNARE
+hold(355, 1, 1);      // bass
+
+// Bar 26: Cm
+tap(356, 0);          // kick
+tap(357, 1);          // melody
+tap(358, 3);          // SNARE
+tap(359, 2);          // melody
+tap(359.5, 1);        // counter-stab
+
+// Bar 27: Bb
+tap(360, 0);          // kick
+tap(361, 2);          // melody
+tap(362, 3);          // SNARE
+tap(363, 2);          // melody
+
+// Bar 28: Ab7
+tap(364, 0);          // kick
+tap(365, 1);          // melody
+tap(366, 3);          // SNARE
+hold(367, 2, 1);      // sustained
+
+// Bars 29-30: winding down
+// Bar 29: Bb
+tap(368, 0);          // kick
+tap(369, 2);          // melody
+tap(370, 3);          // SNARE
+tap(371, 2);          // melody
+
+// Bar 30: Cm
+tap(372, 0);          // kick
+tap(373, 1);          // melody
+tap(374, 3);          // SNARE
+
+// Bars 31-32: final drop hits
+// Bar 31: Bb
+tap(376, 0);          // kick
+tap(377, 2);          // melody
+tap(378, 3);          // SNARE
+
+// Bar 32: Ab7 — FINAL
+burst(380, 0); burst(380, 2); burst(380, 1); burst(380, 3); // CRASH WALL
+hold(381, 2, 3);      // final sustained chord
+
+// ═══ OUTRO (beats 384-540, 2:33.6-3:37) ══════════
+// Reduced arrangement, melody restated, fades.
+// Very sparse. ~1-2 notes per 4 bars.
+
+hold(386, 2, 8);      // pad sustain
+
+// Melody echoes
+tap(398, 2);          // melody fragment
+tap(406, 3);          // melody
+tap(414, 2);          // melody
+
+hold(420, 2, 8);      // long pad
+
+tap(434, 2);          // distant melody
+tap(450, 1);          // lower echo
+
+hold(460, 2, 12);     // final sustain
+
+tap(490, 2);          // last melody whisper
+tap(520, 2);          // absolute final note
 // silence to end
 
 n.sort(function(a,b){return a.time-b.time});
